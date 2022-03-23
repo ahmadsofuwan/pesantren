@@ -679,11 +679,21 @@ class Admin extends MY_Controller
 			case 'getDataDetailMemori':
 				echo json_encode($this->getDataRow('memori_detail', '*', array('memorikey' => $_POST['pkey'])));
 				break;
+			case 'getDetailStudent':
+				$baseData = array();
+				$dataMemori = $this->getDataRow('memori', '*', array('classkey' => $_POST['pkey']), '', '', 'name DESC');
+				foreach ($dataMemori as $dataMemoriKey => $dataMemoriValue) {
+					$detaMemoriDetail = $this->getDataRow('memori_detail', '*', array('memorikey' => $dataMemoriValue['pkey']), '', '', 'name DESC');
+					array_push($baseData, array('detail' => $dataMemoriValue, 'subdetail' => $detaMemoriDetail));
+				}
+				echo json_encode($baseData);
+				break;
 			default:
 				echo 'action is not in the list';
 				break;
 		}
 	}
+
 	public function export($action, $param)
 	{
 		switch ($action) {
@@ -700,7 +710,7 @@ class Admin extends MY_Controller
 					array('student_memori_detail', 'students_detail.studentkey=students.pkey', 'left'),
 				);
 				$data = $this->getDataRow('students', $dataSelect, array('classkey' => $param), '', $dataJoin, 'students.name ASC');
-				
+
 				foreach ($data as $dataKey => $dataValue) {
 					$subExportData = array(
 						'studentname' => $dataValue['name'],

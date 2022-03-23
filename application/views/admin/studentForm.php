@@ -62,6 +62,8 @@ if ($action == 'update')
 							</div>
 						</div>
 
+						<div id="detail"></div>
+
 						<!-- detaile -->
 						<div class="form-group row">
 							<div class="col-sm">
@@ -246,6 +248,40 @@ if ($action == 'update')
 					console.log('error');
 				})
 		})
+		$('[name="class"]').change(function() {
+			var obj = this;
+			var value = $(obj).val();
+
+			$.ajax({
+					url: '<?php echo base_url('Admin/ajax') ?>',
+					type: 'POST',
+					dataType: 'json',
+					data: {
+						action: 'getDetailStudent',
+						pkey: value,
+					},
+				})
+				.done(function(data) {
+					console.log(data)
+					var elemetDetail = '<div class="form-group row">';
+					elemetDetail += '<div class="col-sm">';
+
+					$.each(data, function(dataIndex, dataValue) {
+
+						console.log(dataValue.detail)
+						console.log(dataValue.subdetail)
+
+					});
+
+					elemetDetail += '</div>';
+					elemetDetail += '</div>';
+					$('#detail').html(elemetDetail);
+				})
+				.fail(function() {
+					console.log('error');
+				})
+		})
+
 		checkbox()
 
 		function checkbox() {
