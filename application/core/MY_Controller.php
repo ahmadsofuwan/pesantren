@@ -271,6 +271,7 @@ class MY_Controller extends CI_Controller
                 $this->delete($tableDetail, 'pkey in(' . $deleteId . ')');
         }
     }
+
     public function implode($data, $keys)
     {
         $implode = '';

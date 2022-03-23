@@ -1,4 +1,7 @@
 <?php
+
+use phpDocumentor\Reflection\Types\This;
+
 defined('BASEPATH') or exit('No direct script access allowed');
 class Admin extends MY_Controller
 {
@@ -25,6 +28,7 @@ class Admin extends MY_Controller
 		$tableName = 'students';
 		$className = 'student';
 		$where = '';
+		$whereSelValClass = '';
 		if (!empty($classKey))
 			$where = $tableName . '.classkey=' . $classKey;
 		$join = array(
@@ -32,13 +36,15 @@ class Admin extends MY_Controller
 		);
 		if ($this->role != '1') {
 			$classAcces = $this->getDataRow('account_detail', '*', array('refkey' => $this->id));
-			
+			$whereSelValClass = 'pkey in (' . $this->implode($classAcces, 'classkey') . ')';
 			if (empty($where)) {
-				$where = '';
+				$where = 'classkey in (' . $this->implode($classAcces, 'classkey') . ')';
+			} else {
+				$where .= ' AND classkey in (' . $this->implode($classAcces, 'classkey') . ')';
 			}
 		}
 		$dataList = $this->getDataRow($tableName, $tableName . '.*,class.name as classname', $where, '', $join,  $tableName . '.name ASC');
-		$selValClass = $this->getDataRow('class', '*', '', '', '', 'class.name ASC');
+		$selValClass = $this->getDataRow('class', '*', $whereSelValClass, '', '', 'class.name ASC');
 
 		$data['html']['role'] = $this->role;
 		$data['html']['classKey'] = $classKey;
@@ -675,6 +681,42 @@ class Admin extends MY_Controller
 				break;
 			default:
 				echo 'action is not in the list';
+				break;
+		}
+	}
+	public function export($action, $param)
+	{
+		switch ($action) {
+			case 'student':
+				$exportData = array();
+				$dataSelect = '
+				students.*,
+				class.name as classname,
+				students_detail.memorikey
+				';
+				$dataJoin = array(
+					array('class', 'class.pkey=' . $param, 'left'),
+					array('students_detail', 'students_detail.studentkey=students.pkey', 'left'),
+					array('student_memori_detail', 'students_detail.studentkey=students.pkey', 'left'),
+				);
+				$data = $this->getDataRow('students', $dataSelect, array('classkey' => $param), '', $dataJoin, 'students.name ASC');
+				
+				foreach ($data as $dataKey => $dataValue) {
+					$subExportData = array(
+						'studentname' => $dataValue['name'],
+						'classname' => $dataValue['classname'],
+					);
+					print_r($dataValue);
+					echo '<br>';
+					echo '<br>';
+				}
+
+				break;
+			case 'label':
+				# code...
+				break;
+			default:
+				# code...
 				break;
 		}
 	}

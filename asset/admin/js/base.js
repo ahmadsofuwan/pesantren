@@ -44,6 +44,22 @@ $(document).ready(function () {
 
     });
 
+    obj.find('.excel').click(function () {
+        var obj = $(this).attr('data');
+        const d = new Date();
+        $(obj).table2excel({
+            exclude: ".noExl",
+            name: "Excel Document Name",
+            filename: "Export" + d.getDay() + '-' + (d.getMonth() + 1) + '-' + d.getFullYear() + ".xls",
+            fileext: ".xls",
+            exclude_img: true,
+            exclude_links: true,
+            exclude_inputs: true,
+        });
+    })
+
+
+
 
 });
 
