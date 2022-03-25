@@ -9,39 +9,36 @@ class Content extends MY_Controller
 
 		$tableName = 'students';
 		$dataCompany = $this->getDataRow('profile_company', '*');
-		$join = array(
-			array('class', 'class.pkey =' . $tableName . '.classkey'),
-		);
+
 		if ($_SERVER["REQUEST_METHOD"] == "POST") {
+			$join = array(
+				array('class', 'class.pkey =' . $tableName . '.classkey'),
+			);
+
 			$studentData = $this->getDataRow($tableName, $tableName . '.*,class.name as classname', array('nis' => $_POST['nis']), '', $join);
 			if (empty(count($studentData))) {
 				$_SESSION['arrErrMsg'] = 'NIS yang Anda Masukan Salah';
 				redirect(base_url());
 			}
+			//detail
 			$detailJoin = array(
-				array('memori', 'memori.pkey = students_detail.memorikey'),
+				array('memori_detail', 'memori_detail.pkey=student_detail.detailmemorikey', 'left'),
 			);
-			$detailData =  $this->getDataRow('students_detail', 'students_detail.*,memori.name as memoriname', array('studentkey' => $studentData[0]['pkey']), '', $detailJoin);
-			$implodeDetailKey = '';
-			foreach ($detailData as $key => $value) {
-				if (empty($implodeDetailKey)) {
-					$implodeDetailKey = $value['pkey'];
-				} else {
-					$implodeDetailKey .= ', ' . $value['pkey'];
-				}
-			}
+			$detailSelect = '
+				student_detail.*,
+				memori_detail.name memoridetailname
+			';
+			$dataDetail = $this->getDataRow('student_detail', $detailSelect, array('studentkey' => $studentData[0]['pkey']), '', $detailJoin, 'memori_detail.name DESC');
+			$dataMemori = $this->getDataRow('memori', '*', 'pkey in (' . $this->implode($dataDetail, 'memorikey') . ')', '', '', 'name ASC');
+			$level = $this->getDataRow('level', '*', '', '', '', 'level.pkey ASC');
+			
+			$data['html']['level'] = $level;
+			$data['html']['dataMemori'] = $dataMemori;
+			$data['html']['dataDetail'] = $dataDetail;
+			//detail
 
-			$subditail = $this->getDataRow('student_memori_detail', 'student_memori_detail.*', 'refkey in (' . $implodeDetailKey . ')', '');
-			$selValLevel = $this->getDataRow('level', '*', '', '', '', 'level.pkey ASC');
-			$selValMemori = $this->getDataRow('memori', '*', '', '', '', 'memori.name ASC');
-			$selValMemoriDetail = $this->getDataRow('memori_detail', '*', '', '', '', 'memori_detail.name ASC');
 
-			$data['html']['selValMemoriDetail'] = $selValMemoriDetail;
 			$data['html']['studentData'] = $studentData;
-			$data['html']['detailData'] = $detailData;
-			$data['html']['subditail'] = $subditail;
-			$data['html']['selValLevel'] = $selValLevel;
-			$data['html']['selValMemori'] = $selValMemori;
 		}
 
 		$data['html']['dataCompany'] = $dataCompany;

@@ -38,49 +38,36 @@
             </table>
         </div>
         <div class="col-sm-12 text-center text-white bg-success">STATUS HAFALAN</div>
-        <table class="table ">
-            <?php
-            $number = 1;
-            foreach ($detailData as $Detailkey => $detailVal) { ?>
+        <table class="table table-responsive-sm">
+            <?php $number = 1 ?>
+            <?php foreach ($dataMemori as $dataMemoriKey => $dataMemoriValue) { ?>
                 <tr>
-                    <td colspan="0"><b><?php echo $number++ . '. ' . $detailVal['memoriname'] ?></b></td>
+                    <th colspan="2"><b><?php echo $number++ . '. ' . $dataMemoriValue['name'] ?></b></th>
                 </tr>
-                <?php foreach ($subditail as $subditailKey => $subditailValue) {
-                    if ($subditailValue['refkey'] != $detailVal['pkey'])
-                        continue; ?>
+                <?php foreach ($dataDetail as $dataDetailKey => $dataDetailValue) { ?>
+                    <?php if ($dataDetailValue['memorikey'] != $dataMemoriValue['pkey']) continue ?>
                     <tr>
-                        <td style="width: 130px;">
-                            <?php foreach ($selValMemoriDetail as $selValMemoriDetailKey => $selValMemoriDetailValue) {
-                                if ($subditailValue['subdetailkey'] == $selValMemoriDetailValue['pkey'])
-                                    echo $selValMemoriDetailValue['name'];
-                            } ?>
-                        </td>
-                        <th style="width: 1px;">:</th>
+                        <td><?php echo $dataDetailValue['memoridetailname'] ?></td>
                         <td>
                             <div class="row">
-                                <div class="col-sm-10">
-                                    <div class="row">
-                                        <?php foreach ($selValLevel  as $selValLevelKey => $selValLevelValue) { ?>
-                                            <div class="col-sm-3">
-                                                <div class="form-check">
-                                                    <input type="checkbox" class="form-check-inputs" <?php if ($selValLevelValue['pkey'] == $subditailValue['levelkey']) {
-                                                                                                            echo 'checked';
-                                                                                                        } else {
-                                                                                                            echo 'disabled';
-                                                                                                        } ?>>
-                                                    <label class="form-check-label"><?php echo $selValLevelValue['name'] ?></label>
-                                                </div>
-                                            </div>
-                                        <?php } ?>
+                                <?php foreach ($level as $levelKey => $levelValue) { ?>
+                                    <?php $status = 'disabled';
+                                    if ($levelValue['pkey'] == $dataDetailValue['levelkey']) $status = 'checked' ?>
+
+                                    <div class="col-sm-3">
+                                        <div class="form-check" style="width: auto;">
+                                            <input type="checkbox" class="form-check-input" value="<?php echo $levelValue['pkey'] ?>" <?php echo $status ?>>
+                                            <label class="form-check-label"><?php echo $levelValue['name'] ?></label>
+                                        </div>
                                     </div>
-                                </div>
+                                <?php } ?>
                             </div>
                         </td>
                     </tr>
                 <?php } ?>
-
             <?php } ?>
         </table>
+        <button class="btn btn-success btn-block no-print" onclick="window.print()">CETAK</button>
     </div>
 
 </div>
@@ -91,3 +78,8 @@
         })
     });
 </script>
+<style type="text/css" media="print">
+    .no-print {
+        display: none;
+    }
+</style>
