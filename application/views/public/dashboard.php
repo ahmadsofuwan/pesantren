@@ -47,9 +47,7 @@
 
         <!-- Outer Row -->
         <div class="row justify-content-center">
-
             <div class="col-lg-4">
-
                 <div class="card o-hidden border-0 shadow-lg">
                     <div class="card-body p-0">
                         <!-- Nested Row within Card Body -->
@@ -74,27 +72,25 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
-
             </div>
-
         </div>
     </div>
-    <footer class="text-white" style="background-color: green; height: 50px;min-width:100px;">
-        <div class="container">
-            <div class="copyright text-center">
-                <span>
-                    <div class="row text-center">
-                        <div class="col-sm-12">MI AL-IKHLAS</div>
-                    </div>
-                    <div class="row text-center">
-                        <div class="col-sm-12">Sistem Hafalan Siswa &copy; 2022</div>
-                    </div>
-                </span>
-            </div>
-        </div>
-    </footer>
+    <style>
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: green;
+            color: white;
+            text-align: center;
+        }
+    </style>
+    <div class="footer row">
+        <div class="col-sm-12">MI AL-IKHLAS</div>
+        <div class="col-sm-12">Sistem Hafalan Siswa © 2022</div>
+    </div>
 </body>
 
 
@@ -110,7 +106,7 @@
 <script src="<?= base_url('asset/sb_admin2/'); ?>js/sb-admin-2.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    var err = "<?php echo $_SESSION['arrErrMsg'] ?>";
+    var err = "<?php if (isset($_SESSION['arrErrMsg'])) echo $_SESSION['arrErrMsg']  ?>";
     if (err != "")
         Swal.fire(err);
 </script>

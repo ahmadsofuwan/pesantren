@@ -83,8 +83,6 @@ class Admin extends MY_Controller
 			if (empty($_POST['action'])) redirect(base_url($baseUrl . 'List'));
 			//validate form
 			$arrMsgErr = array();
-			unset($_POST['detailKey'][0]);
-			unset($_POST['detailMemori'][0]);
 			if (empty($_POST['name']))
 				array_push($arrMsgErr, "nama wajib Di isi");
 			if (empty($_POST['nis']))
@@ -94,16 +92,6 @@ class Admin extends MY_Controller
 			if (empty($_POST['father']) || empty($_POST['mother']))
 				array_push($arrMsgErr, "Orang Tua wajib Di isi");
 
-			$detailStatus = false;
-			$arrLangthDetail = array_count_values($_POST['detailMemori']);
-			foreach ($_POST['detailKey'] as $key => $value) {
-				if ($arrLangthDetail[$key] > 1) {
-					$detailStatus = true;
-					break;
-				}
-			}
-			if ($detailStatus)
-				array_push($arrMsgErr, "Jenis Hafalan Tidak Boleh Duble");
 
 			$this->session->set_flashdata('arrMsgErr', $arrMsgErr);
 			//validate form
@@ -111,57 +99,34 @@ class Admin extends MY_Controller
 				switch ($_POST['action']) {
 					case 'add':
 						$refkey = $this->insert($tableName, $this->dataForm($formData));
-						foreach ($_POST['detailKey'] as $key => $value) {
-							$memorikey = $_POST['detailMemori'][$key];
-							$arrStudentDetail = array(
+						$memori = $this->getDataRow('memori', '*', 'classkey=' . $_POST['class']);
+						$memoriDetail = $this->getDataRow('memori_detail', '*', 'memorikey in(' . $this->implode($memori, 'pkey') . ')');
+						foreach ($memoriDetail as $memoriDetailKey => $memoriDetailValue) {
+							$data = array(
 								'studentkey' => $refkey,
-								'memorikey' => $memorikey,
-								'memorikey' => $memorikey,
+								'memorikey' => $memoriDetailValue['memorikey'],
+								'detailmemorikey' => $memoriDetailValue['pkey'],
+								'levelkey' => $_POST['level_' . $memoriDetailValue['memorikey'] . '_' . $memoriDetailValue['pkey']],
 							);
-							$rekeyDetail = $this->insert($tableDetail, $arrStudentDetail);
-							$detailMemori = $this->getDataRow('memori_detail', 'pkey', array('memorikey' => $memorikey));
-							foreach ($detailMemori as $itemKey => $value) {
-								$postLevel = $_POST['level_' . $memorikey . '_' . $value['pkey']];
-								$index = count($postLevel) - 1;
-								$subdetailLevel = array(
-									'refkey' => $rekeyDetail,
-									'memoridetailkey' => $memorikey,
-									'levelkey' => $postLevel[$index],
-									'subdetailkey' =>  $value['pkey'],
-								);
-								$this->insert('student_memori_detail', $subdetailLevel);
-							}
+							$this->insert('student_detail', $data);
 						}
+
 						redirect(base_url($baseUrl . 'List')); //wajib terakhir
 						break;
 					case 'update':
 						$this->update($tableName, $this->dataForm($formData), array('pkey' => $_POST['pkey']));
-						$detailKey = $this->getDataRow($tableDetail, 'pkey', array('studentkey' => $_POST['pkey']));
-
-						$this->delete('student_memori_detail', 'refkey in (' . $this->implode($detailKey, 'pkey') . ')');
-						$this->delete($tableDetail, array('studentkey' => $_POST['pkey']));
-						foreach ($_POST['detailKey'] as $key => $value) {
-							$memorikey = $_POST['detailMemori'][$key];
-							$arrStudentDetail = array(
-								'studentkey' => $_POST['pkey'],
-								'memorikey' => $memorikey,
-								'memorikey' => $memorikey,
+						$this->delete('student_detail', array('studentkey' => $_POST['pkey']));
+						$memori = $this->getDataRow('memori', '*', 'classkey=' . $_POST['class']);
+						$memoriDetail = $this->getDataRow('memori_detail', '*', 'memorikey in(' . $this->implode($memori, 'pkey') . ')');
+						foreach ($memoriDetail as $memoriDetailKey => $memoriDetailValue) {
+							$data = array(
+								'studentkey' => $id,
+								'memorikey' => $memoriDetailValue['memorikey'],
+								'detailmemorikey' => $memoriDetailValue['pkey'],
+								'levelkey' => $_POST['level_' . $memoriDetailValue['memorikey'] . '_' . $memoriDetailValue['pkey']],
 							);
-							$rekeyDetail = $this->insert($tableDetail, $arrStudentDetail);
-							$detailMemori = $this->getDataRow('memori_detail', 'pkey', array('memorikey' => $memorikey));
-							foreach ($detailMemori as $itemKey => $value) {
-								$postLevel = $_POST['level_' . $memorikey . '_' . $value['pkey']];
-								$index = count($postLevel) - 1;
-								$subdetailLevel = array(
-									'refkey' => $rekeyDetail,
-									'memoridetailkey' => $memorikey,
-									'levelkey' => $postLevel[$index],
-									'subdetailkey' =>  $value['pkey'],
-								);
-								$this->insert('student_memori_detail', $subdetailLevel);
-							}
+							$this->insert('student_detail', $data);
 						}
-
 						redirect(base_url($baseUrl . 'List'));
 						break;
 				}
@@ -170,21 +135,20 @@ class Admin extends MY_Controller
 		if (!empty($id)) {
 			$dataRow = $this->getDataRow($tableName, '*', array('pkey' => $id), 1)[0];
 			$this->dataFormEdit($formData, $dataRow);
+			$detailJoin = array(
+				array('memori_detail', 'memori_detail.pkey=student_detail.detailmemorikey', 'left'),
+			);
+			$detailSelect = '
+				student_detail.*,
+				memori_detail.name memoridetailname
+			';
+			$dataDetail = $this->getDataRow('student_detail', $detailSelect, array('studentkey' => $id), '', $detailJoin, 'memori_detail.name DESC');
+			$dataMemori = $this->getDataRow('memori', '*', 'pkey in (' . $this->implode($dataDetail, 'memorikey') . ')', '', '', 'name ASC');
+			$level = $this->getDataRow('level', '*', '', '', '', 'level.pkey ASC');
 
-			if (!empty($tableDetail)) {
-				$subDetail = array();
-				$subDetailMemori = array();
-				$dataDetail = $this->getDataRow($tableDetail, '*', $detailRef . '=' . $id);
-				foreach ($dataDetail as $key => $value) {
-					$dataSubDetail = $this->getDataRow('student_memori_detail', '*', array('refkey' => $value['pkey']));
-					$dataSubDetailMemori = $this->getDataRow('memori_detail', '*', array('memorikey' => $value['memorikey']));
-					$subDetail[$key] = $dataSubDetail;
-					$subDetailMemori[$key] = $dataSubDetailMemori;
-				}
-				$data['html']['dataDetail'] = $dataDetail;
-				$data['html']['subDetail'] = $subDetail;
-				$data['html']['subDetailMemori'] = $subDetailMemori;
-			}
+			$data['html']['level'] = $level;
+			$data['html']['dataMemori'] = $dataMemori;
+			$data['html']['dataDetail'] = $dataDetail;
 		}
 
 		$selValClass = $this->getDataRow('class', '*', '', '', '', 'class.name ASC');
@@ -698,28 +662,27 @@ class Admin extends MY_Controller
 	{
 		switch ($action) {
 			case 'student':
-				$exportData = array();
 				$dataSelect = '
 				students.*,
-				class.name as classname,
-				students_detail.memorikey
-				';
+				class.name as classname';
 				$dataJoin = array(
-					array('class', 'class.pkey=' . $param, 'left'),
-					array('students_detail', 'students_detail.studentkey=students.pkey', 'left'),
-					array('student_memori_detail', 'students_detail.studentkey=students.pkey', 'left'),
+					array('class', 'class.pkey=students.classkey', 'left'),
 				);
-				$data = $this->getDataRow('students', $dataSelect, array('classkey' => $param), '', $dataJoin, 'students.name ASC');
-
+				$data = $this->getDataRow('students', $dataSelect, array('students.classkey' => $param), '', $dataJoin, 'students.name ASC');
 				foreach ($data as $dataKey => $dataValue) {
-					$subExportData = array(
-						'studentname' => $dataValue['name'],
-						'classname' => $dataValue['classname'],
+					$detailJoin = array(
+						array('memori', 'memori.pkey=students_detail.memorikey', 'left')
 					);
-					print_r($dataValue);
-					echo '<br>';
-					echo '<br>';
 				}
+
+
+
+
+				print_r($data);
+				$data['data'] = $data;
+
+				$this->load->view('admin/export', $data);
+
 
 				break;
 			case 'label':

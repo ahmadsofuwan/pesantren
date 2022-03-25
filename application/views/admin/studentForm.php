@@ -45,6 +45,7 @@ if ($action == 'update')
 							<label for="class" class="col-sm-3 col-form-label">Kelas</label>
 							<div class="col-sm">
 								<select name="class" class="form-control">
+									<option selected="true" disabled="disabled">-Pilih Kelas-</option>
 									<?php foreach ($selValClass as $key => $value) { ?>
 										<option value="<?php echo $value['pkey'] ?>"><?php echo $value['name'] ?></option>
 									<?php } ?>
@@ -62,126 +63,48 @@ if ($action == 'update')
 							</div>
 						</div>
 
-						<div id="detail"></div>
-
-						<!-- detaile -->
-						<div class="form-group row">
-							<div class="col-sm">
-								<table class="table">
-									<thead>
-										<tr>
-											<th scope="col">Jenis Hapalan</th>
-											<th scope="col"></th>
-											<th scope="col"></th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr <?php echo $display ?>>
-											<input type="hidden" name="detailKey[]">
-											<td>
-												<select class="form-control" name="detailMemori[]">
-													<?php foreach ($selValMemori as $val) { ?>
-														<option value="<?php echo $val['pkey'] ?>"><?php echo $val['name'] ?></option>
-													<?php } ?>
-												</select>
-											</td>
-											<td>
-												<div class="row head">
-													<div class="col-sm-3" style="min-width: 150px;">Nama Hafalan</div>
-													<div class="col-sm-3 text-center" style="min-width: 150px">Level Hafalan</div>
-													<div class="col-sm"></div>
-												</div>
-												<hr>
-												<?php foreach ($firsDetailbMemori as $item) { ?>
-													<div class="row detail">
-														<div class="col-sm-3"><?php echo $item['name'] ?></div>
-														<div class="col-sm">
-															<div class="d-flex flex-row">
-																<input type="hidden" name="level_<?php echo $selValMemori[0]['pkey'] ?>_<?php echo $item['pkey'] ?>[]">
-																<?php foreach ($selValLevel as $key => $value) { ?>
-																	<div class="p-2">
-																		<div class="form-check">
-																			<input type="checkbox" class="form-check-input" value="<?php echo $value['pkey'] ?>">
-																			<label class="form-check-label"><?php echo $value['name'] ?></label>
-																		</div>
-																	</div>
-																<?php } ?>
-															</div>
-														</div>
-													</div>
-												<?php } ?>
-											</td>
-											<td><b class="text-danger btn closeDetail">X</b></td>
-										</tr>
-										<?php
-										//jika update/edit
-										if ($action == 'update') {
-										?>
-											<?php foreach ($dataDetail as $key => $valuee) { ?>
+						<div id="detail">
+							<?php if ($action == 'update') { ?>
+								<div class="form-group row">
+									<div class="col-sm">
+										<table class="table table-responsive-sm">
+											<thead>
 												<tr>
-													<input type="hidden" name="detailKey[]" value="<?php echo $valuee['pkey'] ?>">
-													<td>
-														<select class="form-control" name="detailMemori[]">
-															<?php foreach ($selValMemori as $val) { ?>
-																<option value="<?php echo $val['pkey'] ?>" <?php if ($val['pkey'] == $valuee['memorikey']) echo 'selected' ?>><?php echo $val['name'] ?></option>
-															<?php } ?>
-														</select>
-													</td>
-													<td>
-														<div class="row head">
-															<div class="col-sm-3" style="min-width: 150px;">Nama Hafalan</div>
-															<div class="col-sm-3" style="min-width: 150px;">Level Hafalan</div>
-															<div class="col-sm"></div>
-														</div>
-														<hr>
-														<?php foreach ($subDetailMemori[$key] as $item) { ?>
-															<div class="row detail">
-																<div class="col-sm-3"><?php echo $item['name'] ?></div>
-																<div class="col-sm">
-																	<div class="d-flex flex-row">
-																		<?php
-																		$levelValue = '';
-																		for ($i = 0; $i < count($subDetail[$key]); $i++) {
-																			if ($subDetail[$key][$i]['subdetailkey'] == $item['pkey'])
-																				$levelValue = $subDetail[$key][$i]['levelkey'];
-																		}
-																		?>
-																		<input type="hidden" name="level_<?php echo $item['memorikey'] ?>_<?php echo $item['pkey'] ?>[]" value="<?php echo $levelValue ?>">
-																		<?php foreach ($selValLevel as $keys => $value) { ?>
-																			<div class="p-2">
-																				<div class="form-check">
-																					<input type="checkbox" class="form-check-input" value="<?php echo $value['pkey'] ?>" <?php
-																																											for ($i = 0; $i < count($subDetail[$key]); $i++) {
-																																												if ($subDetail[$key][$i]['subdetailkey'] == $item['pkey']) {
-																																													if ($subDetail[$key][$i]['levelkey'] == $value['pkey'])
-																																														echo 'checked';
-																																												}
-																																											}
-																																											?>>
-																					<label class="form-check-label"><?php echo $value['name']  ?></label>
-																				</div>
-																			</div>
-																		<?php } ?>
-																	</div>
-																</div>
-															</div>
-														<?php } ?>
-													</td>
-													<td><b class="text-danger btn closeDetail">X</b></td>
+													<th scope="col" colspan="2">Jenis Hapalan</th>
 												</tr>
-											<?php } ?>
-										<?php } //jika update/edit
-										?>
-									</tbody>
-									<tfoot>
-										<tr>
-											<td><button type="button" class="btn btn-primary" name="addDetail">Tambah</button></td>
-										</tr>
-									</tfoot>
-								</table>
-							</div>
+											</thead>
+											<tbody>
+												<?php foreach ($dataMemori as $dataMemoriKey => $dataMemoriValue) { ?>
+													<tr>
+														<td colspan="2"><b><?php echo $dataMemoriValue['name'] ?></b></td>
+													</tr>
+													<?php foreach ($dataDetail as $dataDetailKey => $dataDetailValue) { ?>
+														<?php if ($dataDetailValue['memorikey'] != $dataMemoriValue['pkey']) continue ?>
+														<tr>
+															<td><?php echo $dataDetailValue['memoridetailname'] ?></td>
+															<td>
+																<div class="row">
+																	<input type="hidden" name="<?php echo 'level_' . $dataMemoriValue['pkey'] . '_' . $dataDetailValue['detailmemorikey'] ?>">
+																	<?php foreach ($level as $levelKey => $levelValue) { ?>
+																		<div class="col-sm-3">
+																			<div class="form-check">
+																				<input type="checkbox" class="form-check-input" value="<?php echo $levelValue['pkey'] ?>" <?php if ($levelValue['pkey'] == $dataDetailValue['levelkey']) echo 'checked' ?>>
+																				<label class="form-check-label"><?php echo $levelValue['name'] ?></label>
+																			</div>
+																		</div>
+																	<?php } ?>
+																</div>
+															</td>
+														</tr>
+													<?php } ?>
+
+												<?php } ?>
+											</tbody>
+										</table>
+									</div>
+								</div>
+							<?php } ?>
 						</div>
-						<!-- detaile -->
 
 
 
@@ -251,7 +174,6 @@ if ($action == 'update')
 		$('[name="class"]').change(function() {
 			var obj = this;
 			var value = $(obj).val();
-
 			$.ajax({
 					url: '<?php echo base_url('Admin/ajax') ?>',
 					type: 'POST',
@@ -262,20 +184,43 @@ if ($action == 'update')
 					},
 				})
 				.done(function(data) {
-					console.log(data)
 					var elemetDetail = '<div class="form-group row">';
 					elemetDetail += '<div class="col-sm">';
-
+					elemetDetail += '<table class="table table-responsive-sm">';
+					elemetDetail += '<thead>';
+					elemetDetail += '<tr>';
+					elemetDetail += '<th scope="col" colspan="2">Jenis Hapalan</th>';
+					elemetDetail += '</tr>';
+					elemetDetail += '</thead>';
+					elemetDetail += '<tbody>';
 					$.each(data, function(dataIndex, dataValue) {
-
-						console.log(dataValue.detail)
-						console.log(dataValue.subdetail)
-
+						elemetDetail += '<tr><th>' + dataValue.detail.name + '<th><input type="hidden"  name="detailKey[]"></tr>';
+						elemetDetail += '<input type="hidden" name="detailMemori[]" value="' + dataValue.detail.pkey + '">';
+						$.each(dataValue.subdetail, function(subdetailIndex, subdetailValue) {
+							elemetDetail += '<tr>';
+							elemetDetail += '<td colspan="2">' + subdetailValue.name + '</td>';
+							elemetDetail += '<td>';
+							elemetDetail += '<div class="row">';
+							elemetDetail += '<input type="hidden" name="level_' + dataValue.detail.pkey + '_' + subdetailValue.pkey + '">';
+							$.each(level, function(levelIndex, levelValue) {
+								elemetDetail += '<div class="col-sm-3">';
+								elemetDetail += '<div class="form-check">';
+								elemetDetail += '<input type="checkbox" class="form-check-input" value="' + levelValue.pkey + '">';
+								elemetDetail += '<label class="form-check-label">' + levelValue.name + '</label>';
+								elemetDetail += '</div>';
+								elemetDetail += '</div>';
+							});
+							elemetDetail += '</div>';
+							elemetDetail += '</input>';
+							elemetDetail += '</tr>';
+						});
 					});
-
+					elemetDetail += '<tbody>';
+					elemetDetail += '</table>';
 					elemetDetail += '</div>';
 					elemetDetail += '</div>';
 					$('#detail').html(elemetDetail);
+					checkbox()
 				})
 				.fail(function() {
 					console.log('error');
@@ -284,12 +229,19 @@ if ($action == 'update')
 
 		checkbox()
 
+		var obj = $('#detail');
+		var checkboxCheked = obj.find('input:checkbox:checked')
+		$.each(checkboxCheked, function(index) {
+			$(this).click()
+		});
+
+
+
 		function checkbox() {
 			$('input:checkbox').click(function() {
-				console.log('jalan');
 				var obj = $(this);
 				var valLevel = $(obj).val();
-				var container = obj.closest('.d-flex.flex-row');
+				var container = obj.closest('.row');
 				var arrCheckBox = $(container).find('input:checkbox');
 				var inputHidden = $(container).find('input[type=hidden]');
 				$(inputHidden).val(valLevel);
