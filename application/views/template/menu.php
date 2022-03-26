@@ -66,8 +66,8 @@ $role = $this->session->userdata('role');
     <div id="exportImport" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
             <h6 class="collapse-header">Input:</h6>
-            <a class="collapse-item" href="<?= base_url('Admin/import') ?>">Import Hafalan Siswa</a>
-            <a class="collapse-item" href="<?= base_url('Admin/export') ?>">Export Data Siswa</a>
+            <a class="collapse-item" href="<?= base_url('Admin/importStudent') ?>">Import Data Siswa</a>
+            <a class="collapse-item" href="<?= base_url('Admin/exportStudent') ?>">Export Data Siswa</a>
         </div>
     </div>
 </li>

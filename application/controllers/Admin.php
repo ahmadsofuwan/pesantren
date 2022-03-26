@@ -3,6 +3,8 @@
 use phpDocumentor\Reflection\Types\This;
 
 defined('BASEPATH') or exit('No direct script access allowed');
+
+
 class Admin extends MY_Controller
 {
 	public function __construct()
@@ -397,6 +399,7 @@ class Admin extends MY_Controller
 		$this->template($data);
 	}
 
+
 	public function levelList()
 	{
 		$tableName = 'level';
@@ -658,39 +661,57 @@ class Admin extends MY_Controller
 		}
 	}
 
-	public function export($action, $param)
+	public function exportStudent()
 	{
-		switch ($action) {
-			case 'student':
-				$dataSelect = '
-				students.*,
-				class.name as classname';
-				$dataJoin = array(
-					array('class', 'class.pkey=students.classkey', 'left'),
-				);
-				$data = $this->getDataRow('students', $dataSelect, array('students.classkey' => $param), '', $dataJoin, 'students.name ASC');
-				foreach ($data as $dataKey => $dataValue) {
-					$detailJoin = array(
-						array('memori', 'memori.pkey=students_detail.memorikey', 'left')
-					);
+		$join = array(
+			array('students', 'students.pkey=student_detail.studentkey', 'left'),
+			array('class', 'class.pkey=students.classkey', 'left'),
+			array('memori', 'memori.pkey=student_detail.memorikey', 'left'),
+			array('memori_detail', 'memori_detail.pkey=student_detail.detailmemorikey', 'left'),
+			array('level', 'level.pkey=student_detail.levelkey', 'left'),
+		);
+		$select = '
+			student_detail.*,
+			students.nis as nis,
+			students.name as name,
+			students.nis as nis,
+			class.name as classname,
+			memori.name as memoriname,
+			memori_detail.name as memoridetailname,
+			level.name as levelname
+		';
+
+		$data = $this->getDataRow('student_detail', $select, '', '', $join);
+		$heder = array('No', 'NIS', 'NAMA SISWA', 'KELAS', 'JENIS HAFALAN', 'NAMA HAFALAN', 'STATUS');
+		$index = array('number', 'nis', 'name', 'classname', 'memoriname', 'memoridetailname', 'levelname');
+		$this->export($heder, $index, $data, 'laporan siswa');
+	}
+	public function importStudent()
+	{
+		$baseUrl = '';
+
+		if ($_SERVER["REQUEST_METHOD"] == "POST") {
+			if (empty($_POST['action'])) redirect(base_url($baseUrl));
+			//validate form
+			$arrMsgErr = array();
+			if (empty($_FILES['file']['name']))
+				array_push($arrMsgErr, 'File Import Wajib Di Isi');
+			//validate form
+			$this->session->set_flashdata('arrMsgErr', $arrMsgErr);
+			if (empty(count($arrMsgErr)))
+				switch ($_POST['action']) {
+					case 'import':
+						$this->import(array('postname' => 'file'));
+						die;
+						break;
 				}
-
-
-
-
-				print_r($data);
-				$data['data'] = $data;
-
-				$this->load->view('admin/export', $data);
-
-
-				break;
-			case 'label':
-				# code...
-				break;
-			default:
-				# code...
-				break;
 		}
+
+
+		$data['html']['title'] = 'Import Data Siswa';
+		$data['html']['baseUrl'] = $baseUrl;
+		$data['html']['err'] = $this->genrateErr();
+		$data['url'] = 'admin/import';
+		$this->template($data);
 	}
 }

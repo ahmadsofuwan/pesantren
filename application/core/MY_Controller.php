@@ -1,5 +1,14 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
+require_once(APPPATH . 'third_party' . DIRECTORY_SEPARATOR . 'phpspreadsheet' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+
+// require 'vendor/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Helper\Sample;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use CodeIgniter\Model;
 
 class MY_Controller extends CI_Controller
 {
@@ -284,5 +293,42 @@ class MY_Controller extends CI_Controller
                 }
             }
         return $implode;
+    }
+    public function export($heder, $index, $data, $fileName)
+    {
+        $alphas = range('A', 'Z');
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        for ($i = 0; $i < count($heder); $i++) { //head
+            $sheet->setCellValue($alphas[$i] . '1', $heder[$i]);
+        }
+
+        $j = 1;
+        $row = 2;
+        foreach ($data as $dataKey => $dataValue) {
+            $k = 0;
+            foreach ($index as $item) {
+                if ($item == 'number')
+                    $dataValue[$item] = $j . " ";
+                $sheet->setCellValue($alphas[$k++] . $row, $dataValue[$item]);
+            }
+            $j++;
+            $row++;
+        }
+        $writer = new Xlsx($spreadsheet);
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $fileName . '.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+    }
+    public function import($param)
+    {
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+        $spreadsheet = $reader->load($_FILES[$param['postname']]['tmp_name']);
+        $sheetdata = $spreadsheet->getActiveSheet()->toArray();
+        echo '<pre>';
+        print_r($sheetdata);
     }
 }
