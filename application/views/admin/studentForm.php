@@ -66,7 +66,7 @@ if ($action == 'update')
 						<div id="detail">
 							<?php if ($action == 'update') { ?>
 								<div class="form-group row">
-									<div class="col-sm">
+									<div class="cols-sm-12">
 										<table class="table table-responsive-sm">
 											<thead>
 												<tr>
@@ -74,21 +74,29 @@ if ($action == 'update')
 												</tr>
 											</thead>
 											<tbody>
-												<?php foreach ($dataMemori as $dataMemoriKey => $dataMemoriValue) { ?>
+												<?php $no = 1; ?>
+												<?php foreach ($memori as $memoriKey => $memoriValue) { ?>
 													<tr>
-														<td colspan="2"><b><?php echo $dataMemoriValue['name'] ?></b></td>
+														<td colspan="2"><?php echo $no++ . '. ' . $memoriValue['name'] ?></td>
 													</tr>
-													<?php foreach ($dataDetail as $dataDetailKey => $dataDetailValue) { ?>
-														<?php if ($dataDetailValue['memorikey'] != $dataMemoriValue['pkey']) continue ?>
+													<?php foreach ($detailMemori as $detailMemoriKey => $detailMemoriValue) { ?>
+														<?php if ($memoriValue['pkey'] !== $detailMemoriValue['memorikey']) continue; ?>
 														<tr>
-															<td><?php echo $dataDetailValue['memoridetailname'] ?></td>
+															<td colspan="2"><?php echo $detailMemoriValue['name'] ?></td>
 															<td>
 																<div class="row">
-																	<input type="hidden" name="<?php echo 'level_' . $dataMemoriValue['pkey'] . '_' . $dataDetailValue['detailmemorikey'] ?>">
+																	<input type="hidden" name="<?php echo 'level_' . $memoriValue['pkey'] . '_' . $detailMemoriValue['pkey'] ?>">
 																	<?php foreach ($level as $levelKey => $levelValue) { ?>
+																		<?php
+																		$status = '';
+																		foreach ($studentDetail as $studentDetailKey => $studentDetailValue) {
+																			if ($studentDetailValue['memorikey'] == $memoriValue['pkey'] && $studentDetailValue['detailmemorikey'] == $detailMemoriValue['pkey'] && $studentDetailValue['levelkey'] == $levelValue['pkey'])
+																				$status = 'checked';
+																		}
+																		?>
 																		<div class="col-sm-3">
 																			<div class="form-check">
-																				<input type="checkbox" class="form-check-input" value="<?php echo $levelValue['pkey'] ?>" <?php if ($levelValue['pkey'] == $dataDetailValue['levelkey']) echo 'checked' ?>>
+																				<input type="checkbox" class="form-check-input" value="<?php echo $levelValue['pkey'] ?>" <?php echo $status ?>>
 																				<label class="form-check-label"><?php echo $levelValue['name'] ?></label>
 																			</div>
 																		</div>
@@ -98,6 +106,7 @@ if ($action == 'update')
 														</tr>
 													<?php } ?>
 
+
 												<?php } ?>
 											</tbody>
 										</table>
@@ -106,13 +115,11 @@ if ($action == 'update')
 							<?php } ?>
 						</div>
 
-
-
 						<div class="form-group row mt-5">
-							<div class="col-sm">
+							<div class="col-sm py-1">
 								<button type="submit" class="btn btn-primary btn-block">Submit</button>
 							</div>
-							<div class="col-sm">
+							<div class="col-sm py-1">
 								<a href="<?php echo base_url($baseUrl . 'List') ?>" class="btn btn-warning btn-block">Cancel</a>
 							</div>
 						</div>
@@ -172,8 +179,15 @@ if ($action == 'update')
 				})
 		})
 		$('[name="class"]').change(function() {
-			var obj = this;
+			genrateDetail()
+		})
+
+		function genrateDetail(kelas = '') {
+
+			var obj = $('[name="class"]');
 			var value = $(obj).val();
+			if (kelas != '')
+				value = kelas
 			$.ajax({
 					url: '<?php echo base_url('Admin/ajax') ?>',
 					type: 'POST',
@@ -225,17 +239,13 @@ if ($action == 'update')
 				.fail(function() {
 					console.log('error');
 				})
-		})
-
+		}
 		checkbox()
-
 		var obj = $('#detail');
 		var checkboxCheked = obj.find('input:checkbox:checked')
 		$.each(checkboxCheked, function(index) {
 			$(this).click()
 		});
-
-
 
 		function checkbox() {
 			$('input:checkbox').click(function() {

@@ -296,6 +296,7 @@ class MY_Controller extends CI_Controller
     }
     public function export($heder, $index, $data, $fileName)
     {
+
         $alphas = range('A', 'Z');
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -310,6 +311,11 @@ class MY_Controller extends CI_Controller
             foreach ($index as $item) {
                 if ($item == 'number')
                     $dataValue[$item] = $j . " ";
+                if (is_array($item) && $item[1] == 'time') {
+                    $item = $item[0];
+                    $dataValue[$item] =   date("Y/m/d", $dataValue[$item]);
+                }
+
                 $sheet->setCellValue($alphas[$k++] . $row, $dataValue[$item]);
             }
             $j++;
@@ -323,12 +329,38 @@ class MY_Controller extends CI_Controller
 
         $writer->save('php://output');
     }
-    public function import($param)
+
+    public function import($postname)
     {
-        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-        $spreadsheet = $reader->load($_FILES[$param['postname']]['tmp_name']);
-        $sheetdata = $spreadsheet->getActiveSheet()->toArray();
-        echo '<pre>';
-        print_r($sheetdata);
+        /* Allowed MIME(s) File */
+        $file_mimes = array(
+            'application/octet-stream',
+            'application/vnd.ms-excel',
+            'application/x-csv',
+            'text/x-csv',
+            'text/csv',
+            'application/csv',
+            'application/excel',
+            'application/vnd.msexcel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+        if (isset($_FILES[$postname]['name']) && in_array($_FILES[$postname]['type'], $file_mimes)) {
+
+            $array_file = explode('.', $_FILES[$postname]['name']);
+            $extension  = end($array_file);
+
+            if ('csv' == $extension) {
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Csv();
+            } else if ('xls' == $extension) {
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xls();
+            } else
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+
+            $spreadsheet = $reader->load($_FILES[$postname]['tmp_name']);
+            $sheet_data  = $spreadsheet->getActiveSheet(0)->toArray();
+            return $sheet_data;
+        } else {
+            return 'file field';
+        }
     }
 }

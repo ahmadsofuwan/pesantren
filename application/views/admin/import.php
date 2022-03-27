@@ -24,6 +24,13 @@ if ($action == 'update')
                             </div>
                         </div>
 
+                        <div class="form-group row">
+                            <label for="file" class="col-sm-3 col-form-label">Contoh File Import</label>
+                            <div class="col-sm">
+                                <a href="<?php echo base_url('Admin/excampleImport') ?>" class="btn btn-success">Download Contoh</a>
+                            </div>
+                        </div>
+
                         <div class="form-group row mt-5">
                             <div class="col-sm">
                                 <button type="submit" class="btn btn-primary btn-block">Submit</button>

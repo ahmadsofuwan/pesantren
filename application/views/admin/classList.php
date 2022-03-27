@@ -18,7 +18,6 @@
                 <th scope="row"><?php echo $i++ ?></th>
                 <td><?php echo $value['name'] ?></td>
                 <td style="width: 250px;" class="text-center">
-                    <a href="<?php echo base_url('Admin/export/student/' . $value['pkey']) ?>" class="btn btn-success"><i class="fas fa-file-export">Excel</i></a>
                     <a href="<?php echo base_url($form . '/' . $value['pkey']) ?>" class="btn btn-primary">Edit</a>
                     <button class="btn btn-danger" name="delete" data='<?php echo $tableName ?>' value="<?php echo $value['pkey'] ?>">Delete</button>
                 </td>

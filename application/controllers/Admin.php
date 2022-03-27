@@ -62,7 +62,7 @@ class Admin extends MY_Controller
 	{
 
 		$tableName = 'students';
-		$tableDetail = 'students_detail';
+		$tableDetail = 'student_detail';
 		$baseUrl = get_class($this) . '/' . __FUNCTION__;
 		$formData = array(
 			'pkey' => 'pkey',
@@ -74,12 +74,6 @@ class Admin extends MY_Controller
 			'father' => 'father',
 			'mother' => 'mother',
 		);
-		$formDetail = array(
-			'studentkey' => 'refkey',
-			'memorikey' => 'detailMemori',
-			'levelkey' => 'detailLevel',
-		);
-		$detailRef = 'studentkey';
 
 		if ($_SERVER["REQUEST_METHOD"] == "POST") {
 			if (empty($_POST['action'])) redirect(base_url($baseUrl . 'List'));
@@ -110,14 +104,14 @@ class Admin extends MY_Controller
 								'detailmemorikey' => $memoriDetailValue['pkey'],
 								'levelkey' => $_POST['level_' . $memoriDetailValue['memorikey'] . '_' . $memoriDetailValue['pkey']],
 							);
-							$this->insert('student_detail', $data);
+							$this->insert($tableDetail, $data);
 						}
 
 						redirect(base_url($baseUrl . 'List')); //wajib terakhir
 						break;
 					case 'update':
 						$this->update($tableName, $this->dataForm($formData), array('pkey' => $_POST['pkey']));
-						$this->delete('student_detail', array('studentkey' => $_POST['pkey']));
+						$this->delete($tableDetail, array('studentkey' => $_POST['pkey']));
 						$memori = $this->getDataRow('memori', '*', 'classkey=' . $_POST['class']);
 						$memoriDetail = $this->getDataRow('memori_detail', '*', 'memorikey in(' . $this->implode($memori, 'pkey') . ')');
 						foreach ($memoriDetail as $memoriDetailKey => $memoriDetailValue) {
@@ -127,7 +121,7 @@ class Admin extends MY_Controller
 								'detailmemorikey' => $memoriDetailValue['pkey'],
 								'levelkey' => $_POST['level_' . $memoriDetailValue['memorikey'] . '_' . $memoriDetailValue['pkey']],
 							);
-							$this->insert('student_detail', $data);
+							$this->insert($tableDetail, $data);
 						}
 						redirect(base_url($baseUrl . 'List'));
 						break;
@@ -137,20 +131,18 @@ class Admin extends MY_Controller
 		if (!empty($id)) {
 			$dataRow = $this->getDataRow($tableName, '*', array('pkey' => $id), 1)[0];
 			$this->dataFormEdit($formData, $dataRow);
-			$detailJoin = array(
-				array('memori_detail', 'memori_detail.pkey=student_detail.detailmemorikey', 'left'),
-			);
-			$detailSelect = '
-				student_detail.*,
-				memori_detail.name memoridetailname
-			';
-			$dataDetail = $this->getDataRow('student_detail', $detailSelect, array('studentkey' => $id), '', $detailJoin, 'memori_detail.name DESC');
-			$dataMemori = $this->getDataRow('memori', '*', 'pkey in (' . $this->implode($dataDetail, 'memorikey') . ')', '', '', 'name ASC');
-			$level = $this->getDataRow('level', '*', '', '', '', 'level.pkey ASC');
 
+			$memori = $this->getDataRow('memori', '*', array('classkey' => $dataRow['classkey']));
+			$whereDetailMemori = '';
+			if (!empty(count($memori)))
+				$whereDetailMemori = 'memorikey in (' . $this->implode($memori, 'pkey') . ')';
+			$detailMemori = $this->getDataRow('memori_detail', '*', $whereDetailMemori);
+			$level = $this->getDataRow('level', '*', '', '', '', 'level.pkey ASC');
+			$studentDetail = $this->getDataRow('student_detail', '*', array('studentkey' => $id));
+			$data['html']['studentDetail'] = $studentDetail;
+			$data['html']['detailMemori'] = $detailMemori;
+			$data['html']['memori'] = $memori;
 			$data['html']['level'] = $level;
-			$data['html']['dataMemori'] = $dataMemori;
-			$data['html']['dataDetail'] = $dataDetail;
 		}
 
 		$selValClass = $this->getDataRow('class', '*', '', '', '', 'class.name ASC');
@@ -689,7 +681,6 @@ class Admin extends MY_Controller
 	public function importStudent()
 	{
 		$baseUrl = '';
-
 		if ($_SERVER["REQUEST_METHOD"] == "POST") {
 			if (empty($_POST['action'])) redirect(base_url($baseUrl));
 			//validate form
@@ -699,19 +690,47 @@ class Admin extends MY_Controller
 			//validate form
 			$this->session->set_flashdata('arrMsgErr', $arrMsgErr);
 			if (empty(count($arrMsgErr)))
+
 				switch ($_POST['action']) {
 					case 'import':
-						$this->import(array('postname' => 'file'));
-						die;
+
+						$import = $this->import('file');
+						unset($import[0]);
+						foreach ($import as $importKey => $importValue) {
+							$classkey = 0;
+							$class = $this->getDataRow('class', 'pkey', array('name' => $importValue[2]));
+							if (!empty(count($class)))
+								$classkey = $class[0]['pkey'];
+							$formData = array(
+								'pkey' => 'pkey',
+								'nis' => $importValue[0],
+								'name' => $importValue[1],
+								'birthday' => strtotime($importValue[4]),
+								'birthdaynoted' => $importValue[3],
+								'classkey' => $classkey,
+								'father' => $importValue[5],
+								'mother' => $importValue[6],
+							);
+							$this->insert('students', $formData);
+						}
+						redirect(base_url('Admin'));
 						break;
 				}
 		}
-
-
 		$data['html']['title'] = 'Import Data Siswa';
 		$data['html']['baseUrl'] = $baseUrl;
 		$data['html']['err'] = $this->genrateErr();
 		$data['url'] = 'admin/import';
 		$this->template($data);
+	}
+	public function excampleImport()
+	{
+		$join = array(
+			array('class', 'class.pkey=students.classkey', 'left'),
+		);
+		$data = $this->getDataRow('students', 'students.*,class.name as classname', '', array(1, 2), $join);
+		$header = array('NIS', 'NAMA SISWA', 'KELAS', 'TEMPAT LAHIR', 'TANGGAL LAHIR', 'AYAH', 'UBU');
+		$index = array('nis', 'name', 'classname', 'birthdaynoted', array('birthday', 'time'), 'father', 'mother');
+		$this->export($header, $index, $data, 'Contoh Import');
 	}
 }
