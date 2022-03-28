@@ -39,33 +39,47 @@
         </div>
         <div class="col-sm-12 text-center text-white bg-success">STATUS HAFALAN</div>
         <table class="table table-responsive-sm">
-            <?php $number = 1 ?>
-            <?php foreach ($dataMemori as $dataMemoriKey => $dataMemoriValue) { ?>
+            <thead>
                 <tr>
-                    <th colspan="2"><b><?php echo $number++ . '. ' . $dataMemoriValue['name'] ?></b></th>
+                    <th scope="col" colspan="2">Jenis Hapalan</th>
                 </tr>
-                <?php foreach ($dataDetail as $dataDetailKey => $dataDetailValue) { ?>
-                    <?php if ($dataDetailValue['memorikey'] != $dataMemoriValue['pkey']) continue ?>
+            </thead>
+            <tbody>
+                <?php $no = 1; ?>
+                <?php foreach ($memori as $memoriKey => $memoriValue) { ?>
                     <tr>
-                        <td><?php echo $dataDetailValue['memoridetailname'] ?></td>
-                        <td>
-                            <div class="row">
-                                <?php foreach ($level as $levelKey => $levelValue) { ?>
-                                    <?php $status = 'disabled';
-                                    if ($levelValue['pkey'] == $dataDetailValue['levelkey']) $status = 'checked' ?>
-
-                                    <div class="col-sm-3">
-                                        <div class="form-check" style="width: auto;">
-                                            <input type="checkbox" class="form-check-input" value="<?php echo $levelValue['pkey'] ?>" <?php echo $status ?>>
-                                            <label class="form-check-label"><?php echo $levelValue['name'] ?></label>
-                                        </div>
-                                    </div>
-                                <?php } ?>
-                            </div>
-                        </td>
+                        <td colspan="2"><?php echo $no++ . '. ' . $memoriValue['name'] ?></td>
                     </tr>
+                    <?php foreach ($detailMemori as $detailMemoriKey => $detailMemoriValue) { ?>
+                        <?php if ($memoriValue['pkey'] !== $detailMemoriValue['memorikey']) continue; ?>
+                        <tr>
+                            <td colspan="2"><?php echo $detailMemoriValue['name'] ?></td>
+                            <td>
+                                <div class="row">
+                                    <input type="hidden" name="<?php echo 'level_' . $memoriValue['pkey'] . '_' . $detailMemoriValue['pkey'] ?>">
+                                    <?php foreach ($level as $levelKey => $levelValue) { ?>
+                                        <?php
+                                        $status = 'disabled';
+                                        foreach ($studentDetail as $studentDetailKey => $studentDetailValue) {
+                                            if ($studentDetailValue['memorikey'] == $memoriValue['pkey'] && $studentDetailValue['detailmemorikey'] == $detailMemoriValue['pkey'] && $studentDetailValue['levelkey'] == $levelValue['pkey'])
+                                                $status = 'checked';
+                                        }
+                                        ?>
+                                        <div class="col-sm-3">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" value="<?php echo $levelValue['pkey'] ?>" <?php echo $status ?>>
+                                                <label class="form-check-label"><?php echo $levelValue['name'] ?></label>
+                                            </div>
+                                        </div>
+                                    <?php } ?>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php } ?>
+
+
                 <?php } ?>
-            <?php } ?>
+            </tbody>
         </table>
         <button class="btn btn-success btn-block no-print" onclick="window.print()">CETAK</button>
     </div>

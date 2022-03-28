@@ -20,21 +20,19 @@ class Content extends MY_Controller
 				$_SESSION['arrErrMsg'] = 'NIS yang Anda Masukan Salah';
 				redirect(base_url());
 			}
+
 			//detail
-			$detailJoin = array(
-				array('memori_detail', 'memori_detail.pkey=student_detail.detailmemorikey', 'left'),
-			);
-			$detailSelect = '
-				student_detail.*,
-				memori_detail.name memoridetailname
-			';
-			$dataDetail = $this->getDataRow('student_detail', $detailSelect, array('studentkey' => $studentData[0]['pkey']), '', $detailJoin, 'memori_detail.name DESC');
-			$dataMemori = $this->getDataRow('memori', '*', 'pkey in (' . $this->implode($dataDetail, 'memorikey') . ')', '', '', 'name ASC');
+			$memori = $this->getDataRow('memori', '*', array('classkey' => $studentData[0]['classkey']));
+			$whereDetailMemori = '';
+			if (!empty(count($memori)))
+				$whereDetailMemori = 'memorikey in (' . $this->implode($memori, 'pkey') . ')';
+			$detailMemori = $this->getDataRow('memori_detail', '*', $whereDetailMemori);
 			$level = $this->getDataRow('level', '*', '', '', '', 'level.pkey ASC');
-			
+			$studentDetail = $this->getDataRow('student_detail', '*', array('studentkey' => $studentData[0]['pkey']));
+			$data['html']['studentDetail'] = $studentDetail;
+			$data['html']['detailMemori'] = $detailMemori;
+			$data['html']['memori'] = $memori;
 			$data['html']['level'] = $level;
-			$data['html']['dataMemori'] = $dataMemori;
-			$data['html']['dataDetail'] = $dataDetail;
 			//detail
 
 
