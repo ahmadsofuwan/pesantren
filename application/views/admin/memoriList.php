@@ -8,6 +8,7 @@
         <tr>
             <th scope="col">#</th>
             <th scope="col">Nama</th>
+            <th scope="col">Kelas</th>
             <th scope="col" class="text-center">Action</th>
         </tr>
     </thead>
@@ -17,6 +18,7 @@
             <tr>
                 <th scope="row"><?php echo $i++ ?></th>
                 <td><?php echo $value['name'] ?></td>
+                <td><?php echo $value['classname'] ?></td>
                 <td style="width: 180px;">
                     <a href="<?php echo base_url($form . '/' . $value['pkey']) ?>" class="btn btn-primary">Edit</a>
                     <button class="btn btn-danger" name="delete" data='<?php echo $tableName ?>' value="<?php echo $value['pkey'] ?>">Delete</button>

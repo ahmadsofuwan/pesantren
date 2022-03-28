@@ -133,10 +133,7 @@ class Admin extends MY_Controller
 			$this->dataFormEdit($formData, $dataRow);
 
 			$memori = $this->getDataRow('memori', '*', array('classkey' => $dataRow['classkey']));
-			$whereDetailMemori = '';
-			if (!empty(count($memori)))
-				$whereDetailMemori = 'memorikey in (' . $this->implode($memori, 'pkey') . ')';
-			$detailMemori = $this->getDataRow('memori_detail', '*', $whereDetailMemori);
+			$detailMemori = $this->getDataRow('memori_detail', '*');
 			$level = $this->getDataRow('level', '*', '', '', '', 'level.pkey ASC');
 			$studentDetail = $this->getDataRow('student_detail', '*', array('studentkey' => $id));
 			$data['html']['studentDetail'] = $studentDetail;
@@ -316,8 +313,15 @@ class Admin extends MY_Controller
 	{
 		$tableName = 'memori';
 		$className = 'memori';
+		$join = array(
+			array('class', 'class.pkey=' . $tableName . '.classkey')
+		);
 
-		$dataList = $this->getDataRow($tableName, '*', '', '', '', 'name ASC');
+		$select = '
+		' . $tableName . '.*,
+			class.name as classname
+		';
+		$dataList = $this->getDataRow($tableName, $select, '', '', $join, $tableName . '.name ASC');
 		$data['html']['title'] = 'List Hapalan';
 		$data['html']['tableName'] = $tableName;
 		$data['html']['dataList'] = $dataList;
@@ -620,9 +624,7 @@ class Admin extends MY_Controller
 		}
 		switch ($_POST['action']) {
 			case 'deleteStudent':
-				$detailKey = $this->getDataRow('students_detail', 'pkey', array('studentkey' => $_POST['pkey']));
-				$this->delete('student_memori_detail', 'refkey in (' . $this->implode($detailKey, 'pkey') . ')');
-				$this->delete('students_detail', array('studentkey' => $_POST['pkey']));
+				$this->delete('student_detail', array('studentkey' => $_POST['pkey']));
 				$this->delete('students', 'pkey=' . $_POST['pkey']);
 				break;
 			case 'deleteClass':
